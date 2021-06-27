@@ -1,6 +1,10 @@
 package musichub.business;
 
 import java.util.*;
+
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.Clip;
+
 import musichub.util.*;
 import org.w3c.dom.*;
 
@@ -28,12 +32,14 @@ class SortByAuthor implements Comparator<AudioElement>
 public class MusicHub {
 	private List<Album> albums;
 	private List<PlayList> playlists;
+	private List<Favorites> favorites;
 	private List<AudioElement> elements;
 	
 	public static final String DIR = System.getProperty("user.dir");
 	public static final String ALBUMS_FILE_PATH = DIR + "\\files\\albums.xml";
 	public static final String PLAYLISTS_FILE_PATH = DIR + "\\files\\playlists.xml";
 	public static final String ELEMENTS_FILE_PATH = DIR + "\\files\\elements.xml";
+	public static final String FAVORITES_FILE_PATH = DIR + "\\files\\favorites.xml";
 	
 	private XMLHandler xmlHandler = new XMLHandler();
 	
@@ -41,9 +47,11 @@ public class MusicHub {
 		albums = new LinkedList<Album>();
 		playlists = new LinkedList<PlayList>();
 		elements = new LinkedList<AudioElement>();
+		favorites = new LinkedList<Favorites>(); 
 		this.loadElements();
 		this.loadAlbums();
 		this.loadPlaylists();
+		this.loadFavorites();
 	}
 	
 	public void addElement(AudioElement element) {
@@ -56,6 +64,10 @@ public class MusicHub {
 	
 	public void addPlaylist(PlayList playlist) {
 		playlists.add(playlist);
+	}
+	
+	public void addFavorites(Favorites fav) {
+		favorites.add(fav);
 	}
 	
 	public void deletePlayList(String playListTitle) throws NoPlayListFoundException {
@@ -84,6 +96,10 @@ public class MusicHub {
 	
 	public Iterator<AudioElement> elements() { 
 		return elements.listIterator();
+	}
+	
+	public Iterator<Favorites> favorites() { 
+		return favorites.listIterator();
 	}
 	
 	public String getAlbumsTitlesSortedByDate() {
@@ -216,6 +232,40 @@ public class MusicHub {
 		
 	}
 	
+	public void addElementToFavorites(String elementTitle, String FavTitle) throws NoElementFoundException
+	{
+		Favorites theFav = null;
+        int i = 0;
+		boolean found = false; 
+		
+        for (i = 0; i < favorites.size(); i++) {
+			if (favorites.get(i).getTitle().toLowerCase().equals(FavTitle.toLowerCase())) {
+				theFav = favorites.get(i);
+				found = true;
+				break;
+			}
+		}
+
+		if (found == true) {
+			AudioElement theElement = null;
+			for (AudioElement ae : elements) {
+				if (ae.getTitle().toLowerCase().equals(elementTitle.toLowerCase())) {
+					theElement = ae;
+					break;
+				}
+			}
+            if (theElement != null) {
+                theFav.addElement(theElement.getUUID());
+                //replace the album in the list
+                favorites.set(i,theFav);
+            }
+            else throw new NoElementFoundException("Element " + elementTitle + " not found!");
+			
+		} 
+			
+		
+	}
+	
 	private void loadAlbums () {
 		NodeList albumNodes = xmlHandler.parseXMLFile(ALBUMS_FILE_PATH);
 		if (albumNodes == null) return;
@@ -278,6 +328,33 @@ public class MusicHub {
 			}  
 		}
 	}
+	
+	private void loadFavorites () {
+		NodeList audioelementsNodes = xmlHandler.parseXMLFile(FAVORITES_FILE_PATH);
+		if (audioelementsNodes == null) return;
+		
+		for (int i = 0; i < audioelementsNodes.getLength(); i++) {
+			if (audioelementsNodes.item(i).getNodeType() == Node.ELEMENT_NODE)   {
+				Element audioElement = (Element) audioelementsNodes.item(i);
+				if (audioElement.getNodeName().equals("song")) 	{
+					try {
+						AudioElement newSong = new Song (audioElement);
+						this.addElement(newSong);
+					} catch (Exception ex) 	{
+						System.out.println ("Something is wrong with the XML song element");
+					}
+				}
+				if (audioElement.getNodeName().equals("audiobook")) 	{
+					try {
+						AudioElement newAudioBook = new AudioBook (audioElement);
+						this.addElement(newAudioBook);
+					} catch (Exception ex) 	{
+						System.out.println ("Something is wrong with the XML audiobook element");
+					}
+				}
+			}  
+		}
+	}
 
 
 	public void saveAlbums () {
@@ -312,6 +389,23 @@ public class MusicHub {
 		xmlHandler.createXMLFile(document, PLAYLISTS_FILE_PATH);
 	}
 	
+	public void saveFavorites() {
+		Document document = xmlHandler.createXMLDocument();
+		if (document == null) return;
+		
+		// root element
+		Element root = document.createElement("favorites");
+		document.appendChild(root);
+
+		//save all favorites
+		for (Iterator<Favorites> FavIter = this.favorites(); FavIter.hasNext();) {
+			Favorites currentfav = FavIter.next();
+			currentfav.createXMLElement(document, root);
+		}
+		xmlHandler.createXMLFile(document, FAVORITES_FILE_PATH);
+		
+	}
+	
 	public void saveElements() {
 		Document document = xmlHandler.createXMLDocument();
 		if (document == null) return;
@@ -335,5 +429,47 @@ public class MusicHub {
 			}
 		}
 		xmlHandler.createXMLFile(document, ELEMENTS_FILE_PATH);
- 	}	
+ 	}
+	
+	public void playElement() {
+		Long currentFrame;
+	    Clip clip;
+	      
+	    // current status of clip
+	    String status;
+	      
+	    AudioInputStream audioInputStream;
+	    String filePath;
+		try
+        {
+        	final String DIR = System.getProperty("user.dir");
+            filePath = DIR + "\\files\\audios\\PullUp.wav";
+            AudioPlayer audioPlayer = 
+                            new AudioPlayer();
+              
+            audioPlayer.play();
+            Scanner sc = new Scanner(System.in);
+              
+            while (true)
+            {
+                System.out.println("1. pause");
+                System.out.println("2. resume");
+                System.out.println("3. restart");
+                System.out.println("4. stop");
+                System.out.println("5. Jump to specific time");
+                int c = sc.nextInt();
+                audioPlayer.gotoChoice(c);
+                if (c == 4)
+                break;
+            }
+            sc.close();
+        } 
+          
+        catch (Exception ex) 
+        {
+            System.out.println("Error with playing sound.");
+            ex.printStackTrace();
+          
+          }
+	}
 }

@@ -3,7 +3,7 @@ package musichub.business;
 import java.util.*;
 import org.w3c.dom.*;
 
-public class PlayList {
+public class PlayList implements ListElements{
 	private String title;
 	private UUID uuid;
 	private ArrayList<UUID> elementUUIDs;

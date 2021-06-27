@@ -28,6 +28,41 @@ public class Main
 					printAvailableCommands();
 					choice = scan.nextLine();
 				break;
+				case 'k':
+					
+					/*
+					try
+			        {
+						
+			            String filePath = "user.dir\\files\\audios\\PullUp.wav";
+			            AudioPlayer audioPlayer = 
+			                            new AudioPlayer();
+			              
+			            audioPlayer.play();
+			            Scanner sc = new Scanner(System.in);
+			              
+			            while (true)
+			            {
+			                System.out.println("1. pause");
+			                System.out.println("2. resume");
+			                System.out.println("3. restart");
+			                System.out.println("4. stop");
+			                System.out.println("5. Jump to specific time");
+			                int c = sc.nextInt();
+			                audioPlayer.gotoChoice(c);
+			                if (c == 4)
+			                break;
+			            }
+			            sc.close();
+			        } 
+			          
+			        catch (Exception ex) 
+			        {
+			            System.out.println("Error with playing sound.");
+			            ex.printStackTrace();
+			          
+			          }
+					break; */
 				case 't':
 					//album titles, ordered by date
 					System.out.println(theHub.getAlbumsTitlesSortedByDate());
@@ -110,6 +145,7 @@ public class Main
                     printAvailableCommands();
                     choice = scan.nextLine();
 				break;
+				
 				case '+':
 					//add a song to an album:
 					System.out.println("Add an existing song to an existing album");
@@ -162,6 +198,41 @@ public class Main
                     printAvailableCommands();
                     choice = scan.nextLine();
 				break;
+				case 'f':
+					System.out.println("Add an existing song or audiobook to your favorites");
+					System.out.println("Type the name of the song or audiobook you wish to add. Available elements: ");
+					Iterator<Favorites> itfv = theHub.favorites();
+					while (itfv.hasNext()) {
+						Favorites fv = itfv.next();
+						System.out.println(fv.getTitle());
+					}
+					System.out.println("Type the name of the playlist you wish to create:");
+					String favTitle = scan.nextLine();	
+					Favorites fv = new Favorites(favTitle);
+					theHub.addFavorites(fv);
+					System.out.println("Available elements: ");
+					
+					Iterator<AudioElement> itelem = theHub.elements();
+					while (itelem.hasNext()) {
+						AudioElement ae = itelem.next();
+						System.out.println(ae.getTitle());
+					}
+					while (choice.charAt(0)!= 'n') 	{
+						System.out.println("Type the name of the audio element you wish to add or 'n' to exit:");
+						String elementTitle = scan.nextLine();	
+                        try {
+                            theHub.addElementToFavorites(elementTitle, favTitle);
+                        } catch (NoElementFoundException ex) {
+                            System.out.println (ex.getMessage());
+                        }
+                            
+						System.out.println("Type y to add a new one, n to end");
+						choice = scan.nextLine();
+					}
+					System.out.println("Favorites added!");
+					printAvailableCommands();
+					choice = scan.nextLine();
+					break;
 				case 'p':
 					//create a new playlist from existing elements
 					System.out.println("Add an existing song or audiobook to a new playlist");
@@ -219,11 +290,12 @@ public class Main
 					choice = scan.nextLine();
 				break;
 				case 's':
-					//save elements, albums, playlists
+					//save elements, albums, playlists, favorites
 					theHub.saveElements();
 					theHub.saveAlbums();
 					theHub.savePlayLists();
-					System.out.println("Elements, albums and playlists saved!");
+					theHub.saveFavorites();
+					System.out.println("Elements, albums, playlists and favorites saved!");
 					printAvailableCommands();
 					choice = scan.nextLine();
 				break;
@@ -239,14 +311,16 @@ public class Main
 		System.out.println("t: display the album titles, ordered by date");
 		System.out.println("g: display songs of an album, ordered by genre");
 		System.out.println("d: display songs of an album");
+		System.out.println("f: add elements to favorites");
 		System.out.println("u: display audiobooks ordered by author");
 		System.out.println("c: add a new song");
 		System.out.println("a: add a new album");
+		System.out.println("f: add elements to favorites");
 		System.out.println("+: add a song to an album");
 		System.out.println("l: add a new audiobook");
 		System.out.println("p: create a new playlist from existing songs and audio books");
 		System.out.println("-: delete an existing playlist");
-		System.out.println("s: save elements, albums, playlists");
+		System.out.println("s: save elements, albums, playlists, favorites");
 		System.out.println("q: quit program");
 	}
 }
