@@ -2,13 +2,27 @@ package musichub.main;
 import musichub.business.*;
 import java.util.*;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.beans.XMLEncoder;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.BufferedOutputStream;
-	
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;	
 public class Main
 {
- 	public static void main (String[] args) {
+ 	public static void main (String[] args) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
 
 		MusicHub theHub = new MusicHub ();
 		
@@ -28,41 +42,7 @@ public class Main
 					printAvailableCommands();
 					choice = scan.nextLine();
 				break;
-				case 'k':
-					
-					/*
-					try
-			        {
-						
-			            String filePath = "user.dir\\files\\audios\\PullUp.wav";
-			            AudioPlayer audioPlayer = 
-			                            new AudioPlayer();
-			              
-			            audioPlayer.play();
-			            Scanner sc = new Scanner(System.in);
-			              
-			            while (true)
-			            {
-			                System.out.println("1. pause");
-			                System.out.println("2. resume");
-			                System.out.println("3. restart");
-			                System.out.println("4. stop");
-			                System.out.println("5. Jump to specific time");
-			                int c = sc.nextInt();
-			                audioPlayer.gotoChoice(c);
-			                if (c == 4)
-			                break;
-			            }
-			            sc.close();
-			        } 
-			          
-			        catch (Exception ex) 
-			        {
-			            System.out.println("Error with playing sound.");
-			            ex.printStackTrace();
-			          
-			          }
-					break; */
+				
 				case 't':
 					//album titles, ordered by date
 					System.out.println(theHub.getAlbumsTitlesSortedByDate());
@@ -299,6 +279,51 @@ public class Main
 					printAvailableCommands();
 					choice = scan.nextLine();
 				break;
+				case '*':
+					System.out.println("Choose a music to play. Available songs:");
+					AudioElement theElement = null;
+					Iterator<AudioElement> itaelem = theHub.elements();
+					AudioElement ae = null ;
+					while (itaelem.hasNext()) {
+						ae = itaelem.next();
+						System.out.println(ae.getTitle());
+					}
+					String titleElem = scan.nextLine();
+					AudioInputStream audioInputStream;
+					String filePath;
+					String ElemTitle = theHub.getUUIDFromTitle(titleElem);
+					try
+			        {
+			        	final String DIR = System.getProperty("user.dir");
+			            filePath = DIR + "\\files\\audios\\"+ ElemTitle +".wav";
+			            AudioPlayer audioPlayer = 
+			                            new AudioPlayer(filePath);
+			              
+			            audioPlayer.play();
+			            Scanner sc = new Scanner(System.in);
+			              
+			            while (true)
+			            {
+			                System.out.println("1. pause");
+			                System.out.println("2. resume");
+			                System.out.println("3. restart");
+			                System.out.println("4. stop");
+			                System.out.println("5. Jump to specific time");
+			                int c = sc.nextInt();
+			                audioPlayer.gotoChoice(c);
+			                if (c == 4)
+			                break;
+			            }
+			            sc.close();
+			        } 
+			          
+			        catch (Exception ex) 
+			        {
+			            System.out.println("Error with playing sound.");
+			            ex.printStackTrace();
+			          
+			          }
+				break;
 				default:
 				
 				break;
@@ -312,6 +337,7 @@ public class Main
 		System.out.println("g: display songs of an album, ordered by genre");
 		System.out.println("d: display songs of an album");
 		System.out.println("f: add elements to favorites");
+		System.out.println("*: play a song");
 		System.out.println("u: display audiobooks ordered by author");
 		System.out.println("c: add a new song");
 		System.out.println("a: add a new album");

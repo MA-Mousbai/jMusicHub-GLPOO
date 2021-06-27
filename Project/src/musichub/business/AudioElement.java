@@ -52,6 +52,22 @@ public abstract class AudioElement {
 		return this.uuid;
 	}
 	
+	/*public UUID getUUIDFromName(String name) {
+		List<AudioElement> elements;
+		String DIR = System.getProperty("user.dir");
+		String ELEMENTS_FILE_PATH = DIR + "\\files\\elements.xml";
+		
+		elements = new LinkedList<AudioElement>();
+		this.MusicHub.loadElements();
+		Iterator<AudioElement> itaelem = elements();
+		AudioElement ae = null ;
+		while (itaelem.hasNext()) {
+			ae = itaelem.next();
+			System.out.println(ae.getTitle());
+		}
+		return uuid;
+	}*/
+	
 	public String getArtist() {
 		return this.artist;
 	}

@@ -266,6 +266,8 @@ public class MusicHub {
 		
 	}
 	
+	
+	
 	private void loadAlbums () {
 		NodeList albumNodes = xmlHandler.parseXMLFile(ALBUMS_FILE_PATH);
 		if (albumNodes == null) return;
@@ -431,45 +433,18 @@ public class MusicHub {
 		xmlHandler.createXMLFile(document, ELEMENTS_FILE_PATH);
  	}
 	
-	public void playElement() {
-		Long currentFrame;
-	    Clip clip;
-	      
-	    // current status of clip
-	    String status;
-	      
-	    AudioInputStream audioInputStream;
-	    String filePath;
-		try
-        {
-        	final String DIR = System.getProperty("user.dir");
-            filePath = DIR + "\\files\\audios\\PullUp.wav";
-            AudioPlayer audioPlayer = 
-                            new AudioPlayer();
-              
-            audioPlayer.play();
-            Scanner sc = new Scanner(System.in);
-              
-            while (true)
-            {
-                System.out.println("1. pause");
-                System.out.println("2. resume");
-                System.out.println("3. restart");
-                System.out.println("4. stop");
-                System.out.println("5. Jump to specific time");
-                int c = sc.nextInt();
-                audioPlayer.gotoChoice(c);
-                if (c == 4)
+	
+	public String getUUIDFromTitle(String titleAudio) {
+		
+		boolean found = false;
+		int i = 0;
+		for ( i = 0 ; i < elements.size(); i++){
+            if(elements.get(i).getTitle().toLowerCase().equals(titleAudio) ){
+                found = true;
                 break;
             }
-            sc.close();
-        } 
-          
-        catch (Exception ex) 
-        {
-            System.out.println("Error with playing sound.");
-            ex.printStackTrace();
-          
-          }
+        }
+		return elements.get(i).getUUID().toString();
 	}
+	
 }

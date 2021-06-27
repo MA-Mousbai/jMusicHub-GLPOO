@@ -3,7 +3,8 @@ package musichub.business;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
-  
+import java.util.UUID;
+
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
@@ -24,7 +25,7 @@ public class AudioPlayer
     static String filePath;
   
     // constructor to initialize streams and clip
-    public AudioPlayer()
+    public AudioPlayer(String filePath)
         throws UnsupportedAudioFileException,
         IOException, LineUnavailableException 
     {
@@ -41,12 +42,11 @@ public class AudioPlayer
         clip.loop(Clip.LOOP_CONTINUOUSLY);
     }
   
-    public static void main(String[] args) 
-    {
+    /*public void playMusic(UUID musicUUID) {
         try
         {
         	final String DIR = System.getProperty("user.dir");
-            filePath = DIR + "\\files\\audios\\PullUp.wav";
+            filePath = DIR + "\\files\\audios\\"+ musicUUID +".wav";
             AudioPlayer audioPlayer = 
                             new AudioPlayer();
               
@@ -76,7 +76,7 @@ public class AudioPlayer
           }
     }
       
-    // Work as the user enters his choice
+    // Work as the user enters his choice*/
       
     public void gotoChoice(int c)
             throws IOException, LineUnavailableException, UnsupportedAudioFileException 
