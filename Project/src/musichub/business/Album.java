@@ -6,6 +6,10 @@ import java.text.*;
 
 
 
+/**
+ * @author Mohamed-Ali Mousbai
+ *
+ */
 public class Album {
 	private String title;
 	private String artist;
@@ -42,6 +46,10 @@ public class Album {
 		this.songsUIDs = new ArrayList<UUID>();
 	}
 	
+	/**
+	 * @param xmlElement
+	 * @throws Exception
+	 */
 	public Album (Element xmlElement) throws Exception {
 		try {
 			this.title = xmlElement.getElementsByTagName("title").item(0).getTextContent();
