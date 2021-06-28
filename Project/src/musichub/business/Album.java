@@ -108,6 +108,10 @@ public class Album {
 		return date;
 	}
 	
+	public String getArtist() {
+		return artist;
+	}
+	
 	public void createXMLElement(Document document, Element parentElement)
 	{
 		Element albumElement = document.createElement("album");

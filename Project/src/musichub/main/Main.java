@@ -1,5 +1,8 @@
 package musichub.main;
+
 import musichub.business.*;
+import musichub.logs.*;
+
 import java.util.*;
 
 import javax.sound.sampled.AudioInputStream;
@@ -14,319 +17,339 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;	
-public class Main
-{
- 	public static void main (String[] args) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+import javax.sound.sampled.UnsupportedAudioFileException;
 
-		MusicHub theHub = new MusicHub ();
-		
+public class Main {
+	public static void main(String[] args) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+
+		MusicHub theHub = new MusicHub();
+		Logs logs = new Logs();
+
 		System.out.println("Type h for available commands");
-		
-		
+
 		Scanner scan = new Scanner(System.in);
 		String choice = scan.nextLine();
-		
+
 		String albumTitle = null;
-		
-		if (choice.length() == 0) System.exit(0);						
-		
-		while (choice.charAt(0)!= 'q') 	{
-			switch (choice.charAt(0)) 	{
-				case 'h':
-					printAvailableCommands();
-					choice = scan.nextLine();
+
+		logs.log("MusicHub started", LogCat.INFO);
+
+		if (choice.length() == 0)
+			System.exit(0);
+
+		while (choice.charAt(0) != 'q') {
+			switch (choice.charAt(0)) {
+			case 'h':
+				logs.log("User asked for all commands", LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
+
+			case 't':
+				// album titles, ordered by date
+				logs.log("User displayed all albums titles ordered by date", LogCat.INFO);
+				System.out.println(theHub.getAlbumsTitlesSortedByDate());
+				printAvailableCommands();
+				choice = scan.nextLine();
+				break;
+			case 'g':
+
+				// songs of an album, sorted by genre
+				System.out.println(
+						"Songs of an album sorted by genre will be displayed; enter the album name, available albums are:");
+				System.out.println(theHub.getAlbumsTitlesSortedByDate());
+
+				albumTitle = scan.nextLine();
+
+				logs.log("User displayed songs of " + albumTitle + " sorted by genre", LogCat.INFO);
+				try {
+					System.out.println(theHub.getAlbumSongsSortedByGenre(albumTitle));
+				} catch (NoAlbumFoundException ex) {
+					System.out.println("No album found with the requested title " + ex.getMessage());
+				}
+				printAvailableCommands();
+				choice = scan.nextLine();
+				break;
+			case 'd':
 				
-				case 't':
-					//album titles, ordered by date
-					System.out.println(theHub.getAlbumsTitlesSortedByDate());
-					printAvailableCommands();
-					choice = scan.nextLine();
+				// songs of an album
+				System.out.println("Songs of an album will be displayed; enter the album name, available albums are:");
+				System.out.println(theHub.getAlbumsTitlesSortedByDate());
+
+				albumTitle = scan.nextLine();
+				logs.log("User displayed songs of " + albumTitle + " sorted by date", LogCat.INFO);
+				try {
+					System.out.println(theHub.getAlbumSongs(albumTitle));
+				} catch (NoAlbumFoundException ex) {
+					System.out.println("No album found with the requested title " + ex.getMessage());
+				}
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 'g':
-					//songs of an album, sorted by genre
-					System.out.println("Songs of an album sorted by genre will be displayed; enter the album name, available albums are:");
-					System.out.println(theHub.getAlbumsTitlesSortedByDate());
-					
-					albumTitle = scan.nextLine();
-					try {
-						System.out.println(theHub.getAlbumSongsSortedByGenre(albumTitle));
-					} catch (NoAlbumFoundException ex) {
-						System.out.println("No album found with the requested title " + ex.getMessage());
-					}
-					printAvailableCommands();
-					choice = scan.nextLine();
+			case 'u':
+				// audiobooks ordered by author
+				logs.log("User displayed all audiobooks titles ordered by author", LogCat.INFO);
+				System.out.println(theHub.getAudiobooksTitlesSortedByAuthor());
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 'd':
-					//songs of an album
-					System.out.println("Songs of an album will be displayed; enter the album name, available albums are:");
-					System.out.println(theHub.getAlbumsTitlesSortedByDate());
-					
-					albumTitle = scan.nextLine();
-					try {
-						System.out.println(theHub.getAlbumSongs(albumTitle));
-					} catch (NoAlbumFoundException ex) {
-						System.out.println("No album found with the requested title " + ex.getMessage());
-					}
-					printAvailableCommands();
-					choice = scan.nextLine();
+			case 'c':
+				// add a new song
+				System.out.println("Enter a new song: ");
+				System.out.println("Song title: ");
+				String title = scan.nextLine();
+				System.out.println("Song genre (jazz, classic, hiphop, rock, pop, rap):");
+				String genre = scan.nextLine();
+				System.out.println("Song artist: ");
+				String artist = scan.nextLine();
+				System.out.println("Song length in seconds: ");
+				int length = Integer.parseInt(scan.nextLine());
+				System.out.println("Song content: ");
+				String content = scan.nextLine();
+				Song s = new Song(title, artist, length, content, genre);
+				theHub.addElement(s);
+				System.out.println("New element list: ");
+				Iterator<AudioElement> it = theHub.elements();
+				while (it.hasNext())
+					System.out.println(it.next().getTitle());
+				System.out.println("Song created!");
+				logs.log("User added song : " + s.getTitle() + " by" + s.getArtist() + " into MusicHub!", LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 'u':
-					//audiobooks ordered by author
-					System.out.println(theHub.getAudiobooksTitlesSortedByAuthor());
-					printAvailableCommands();
-					choice = scan.nextLine();
+			case 'a':
+				// add a new album
+				System.out.println("Enter a new album: ");
+				System.out.println("Album title: ");
+				String aTitle = scan.nextLine();
+				System.out.println("Album artist: ");
+				String aArtist = scan.nextLine();
+				System.out.println("Album length in seconds: ");
+				int aLength = Integer.parseInt(scan.nextLine());
+				System.out.println("Album date as YYYY-DD-MM: ");
+				String aDate = scan.nextLine();
+				Album a = new Album(aTitle, aArtist, aLength, aDate);
+				theHub.addAlbum(a);
+				System.out.println("New list of albums: ");
+				Iterator<Album> ita = theHub.albums();
+				while (ita.hasNext())
+					System.out.println(ita.next().getTitle());
+				System.out.println("Album created!");
+				logs.log("User added album : " + a.getTitle() + " by" + a.getArtist() + " into MusicHub!", LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 'c':
-					// add a new song
-                    System.out.println("Enter a new song: ");
-                    System.out.println("Song title: ");
-                    String title = scan.nextLine();
-                    System.out.println("Song genre (jazz, classic, hiphop, rock, pop, rap):");
-                    String genre = scan.nextLine();
-                    System.out.println("Song artist: ");
-                    String artist = scan.nextLine();
-                    System.out.println ("Song length in seconds: ");
-                    int length = Integer.parseInt(scan.nextLine());
-                    System.out.println("Song content: "); 
-                    String content = scan.nextLine();
-                    Song s = new Song (title, artist, length, content, genre);
-                    theHub.addElement(s);
-                    System.out.println("New element list: ");
-                    Iterator<AudioElement> it = theHub.elements();
-                    while (it.hasNext()) System.out.println(it.next().getTitle());
-                    System.out.println("Song created!");
-                    printAvailableCommands();
-                    choice = scan.nextLine();
-                break;
-				case 'a':
-					// add a new album
-                    System.out.println("Enter a new album: ");
-                    System.out.println("Album title: ");
-                    String aTitle = scan.nextLine();
-                    System.out.println("Album artist: ");
-                    String aArtist = scan.nextLine();
-                    System.out.println ("Album length in seconds: ");
-                    int aLength = Integer.parseInt(scan.nextLine());
-                    System.out.println("Album date as YYYY-DD-MM: "); 
-                    String aDate = scan.nextLine();
-                    Album a = new Album(aTitle, aArtist, aLength, aDate);
-                    theHub.addAlbum(a);
-                    System.out.println("New list of albums: ");
-                    Iterator<Album> ita = theHub.albums();
-                    while (ita.hasNext()) System.out.println(ita.next().getTitle());
-                    System.out.println("Album created!");
-                    printAvailableCommands();
-                    choice = scan.nextLine();
+
+			case '+':
+				// add a song to an album:
+				System.out.println("Add an existing song to an existing album");
+				System.out.println("Type the name of the song you wish to add. Available songs: ");
+				Iterator<AudioElement> itae = theHub.elements();
+				while (itae.hasNext()) {
+					AudioElement ae = itae.next();
+					if (ae instanceof Song)
+						System.out.println(ae.getTitle());
+				}
+				String songTitle = scan.nextLine();
+
+				System.out.println("Type the name of the album you wish to enrich. Available albums: ");
+				Iterator<Album> ait = theHub.albums();
+				while (ait.hasNext()) {
+					Album al = ait.next();
+					System.out.println(al.getTitle());
+				}
+				String titleAlbum = scan.nextLine();
+				try {
+					theHub.addElementToAlbum(songTitle, titleAlbum);
+				} catch (NoAlbumFoundException ex) {
+					System.out.println(ex.getMessage());
+				} catch (NoElementFoundException ex) {
+					System.out.println(ex.getMessage());
+				}
+				System.out.println("Song added to the album!");
+				logs.log("User added song : " + songTitle + " into album: " + titleAlbum, LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
+			case 'l':
+				// add a new audiobook
+				System.out.println("Enter a new audiobook: ");
+				System.out.println("AudioBook title: ");
+				String bTitle = scan.nextLine();
+				System.out.println("AudioBook category (youth, novel, theater, documentary, speech)");
+				String bCategory = scan.nextLine();
+				System.out.println("AudioBook artist: ");
+				String bArtist = scan.nextLine();
+				System.out.println("AudioBook length in seconds: ");
+				int bLength = Integer.parseInt(scan.nextLine());
+				System.out.println("AudioBook content: ");
+				String bContent = scan.nextLine();
+				System.out.println("AudioBook language (french, english, italian, spanish, german)");
+				String bLanguage = scan.nextLine();
+				AudioBook b = new AudioBook(bTitle, bArtist, bLength, bContent, bLanguage, bCategory);
+				theHub.addElement(b);
+				System.out.println("Audiobook created! New element list: ");
 				
-				case '+':
-					//add a song to an album:
-					System.out.println("Add an existing song to an existing album");
-					System.out.println("Type the name of the song you wish to add. Available songs: ");
-					Iterator<AudioElement> itae = theHub.elements();
-					while (itae.hasNext()) {
-						AudioElement ae = itae.next();
-						if ( ae instanceof Song) System.out.println(ae.getTitle());
-					}
-					String songTitle = scan.nextLine();	
-					
-					System.out.println("Type the name of the album you wish to enrich. Available albums: ");
-					Iterator<Album> ait = theHub.albums();
-					while (ait.hasNext()) {
-						Album al = ait.next();
-						System.out.println(al.getTitle());
-					}
-					String titleAlbum = scan.nextLine();
+				logs.log("User added audiobook : " + b.getTitle() + " by" + b.getArtist() + " into MusicHub!", LogCat.INFO);
+				Iterator<AudioElement> itl = theHub.elements();
+				while (itl.hasNext())
+					System.out.println(itl.next().getTitle());
+				printAvailableCommands();
+				choice = scan.nextLine();
+				break;
+			case 'f':
+				System.out.println("Add an existing song or audiobook to your favorites");
+				System.out.println("Type the name of the song or audiobook you wish to add. Available elements: ");
+				Iterator<Favorites> itfv = theHub.favorites();
+				while (itfv.hasNext()) {
+					Favorites fv = itfv.next();
+					System.out.println(fv.getTitle());
+				}
+				System.out.println("Type the name of the playlist you wish to create:");
+				String favTitle = scan.nextLine();
+				Favorites fv = new Favorites(favTitle);
+				theHub.addFavorites(fv);
+				logs.log("User created favorite : " + fv.getTitle() + " into MusicHub!", LogCat.INFO);
+				System.out.println("Available elements: ");
+
+				Iterator<AudioElement> itelem = theHub.elements();
+				while (itelem.hasNext()) {
+					AudioElement ae = itelem.next();
+					System.out.println(ae.getTitle());
+				}
+				while (choice.charAt(0) != 'n') {
+					System.out.println("Type the name of the audio element you wish to add or 'n' to exit:");
+					String elementTitle = scan.nextLine();
 					try {
-						theHub.addElementToAlbum(songTitle, titleAlbum);
-					} catch (NoAlbumFoundException ex){
-						System.out.println (ex.getMessage());
-					} catch (NoElementFoundException ex){
-						System.out.println (ex.getMessage());
+						theHub.addElementToFavorites(elementTitle, favTitle);
+					} catch (NoElementFoundException ex) {
+						System.out.println(ex.getMessage());
 					}
-					System.out.println("Song added to the album!");
-					printAvailableCommands();
-                    choice = scan.nextLine();
-					break;
-				case 'l':
-					// add a new audiobook
-                    System.out.println("Enter a new audiobook: ");
-                    System.out.println("AudioBook title: ");
-                    String bTitle = scan.nextLine();
-                    System.out.println("AudioBook category (youth, novel, theater, documentary, speech)");
-                    String bCategory = scan.nextLine();
-                    System.out.println("AudioBook artist: ");
-                    String bArtist = scan.nextLine();
-                    System.out.println ("AudioBook length in seconds: ");
-                    int bLength = Integer.parseInt(scan.nextLine());
-                    System.out.println("AudioBook content: "); 
-                    String bContent = scan.nextLine();
-                    System.out.println("AudioBook language (french, english, italian, spanish, german)");
-                    String bLanguage = scan.nextLine();
-                    AudioBook b = new AudioBook (bTitle, bArtist, bLength, bContent, bLanguage, bCategory);
-                    theHub.addElement(b);
-                    System.out.println("Audiobook created! New element list: ");
-                    Iterator<AudioElement> itl = theHub.elements();
-                    while (itl.hasNext()) System.out.println(itl.next().getTitle());
-                    printAvailableCommands();
-                    choice = scan.nextLine();
+					logs.log("User added music : " + elementTitle + " into " + fv.getTitle() + " his favorite!", LogCat.INFO);
+					System.out.println("Type y to add a new one, n to end");
+					choice = scan.nextLine();
+				}
+				System.out.println("Favorites added!");
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 'f':
-					System.out.println("Add an existing song or audiobook to your favorites");
-					System.out.println("Type the name of the song or audiobook you wish to add. Available elements: ");
-					Iterator<Favorites> itfv = theHub.favorites();
-					while (itfv.hasNext()) {
-						Favorites fv = itfv.next();
-						System.out.println(fv.getTitle());
-					}
-					System.out.println("Type the name of the playlist you wish to create:");
-					String favTitle = scan.nextLine();	
-					Favorites fv = new Favorites(favTitle);
-					theHub.addFavorites(fv);
-					System.out.println("Available elements: ");
-					
-					Iterator<AudioElement> itelem = theHub.elements();
-					while (itelem.hasNext()) {
-						AudioElement ae = itelem.next();
-						System.out.println(ae.getTitle());
-					}
-					while (choice.charAt(0)!= 'n') 	{
-						System.out.println("Type the name of the audio element you wish to add or 'n' to exit:");
-						String elementTitle = scan.nextLine();	
-                        try {
-                            theHub.addElementToFavorites(elementTitle, favTitle);
-                        } catch (NoElementFoundException ex) {
-                            System.out.println (ex.getMessage());
-                        }
-                            
-						System.out.println("Type y to add a new one, n to end");
-						choice = scan.nextLine();
-					}
-					System.out.println("Favorites added!");
-					printAvailableCommands();
-					choice = scan.nextLine();
-					break;
-				case 'p':
-					//create a new playlist from existing elements
-					System.out.println("Add an existing song or audiobook to a new playlist");
-					System.out.println("Existing playlists:");
-					Iterator<PlayList> itpl = theHub.playlists();
-					while (itpl.hasNext()) {
-						PlayList pl = itpl.next();
-						System.out.println(pl.getTitle());
-					}
-					System.out.println("Type the name of the playlist you wish to create:");
-					String playListTitle = scan.nextLine();	
-					PlayList pl = new PlayList(playListTitle);
-					theHub.addPlaylist(pl);
-					System.out.println("Available elements: ");
-					
-					Iterator<AudioElement> itael = theHub.elements();
-					while (itael.hasNext()) {
-						AudioElement ae = itael.next();
-						System.out.println(ae.getTitle());
-					}
-					while (choice.charAt(0)!= 'n') 	{
-						System.out.println("Type the name of the audio element you wish to add or 'n' to exit:");
-						String elementTitle = scan.nextLine();	
-                        try {
-                            theHub.addElementToPlayList(elementTitle, playListTitle);
-                        } catch (NoPlayListFoundException ex) {
-                            System.out.println (ex.getMessage());
-                        } catch (NoElementFoundException ex) {
-                            System.out.println (ex.getMessage());
-                        }
-                            
-						System.out.println("Type y to add a new one, n to end");
-						choice = scan.nextLine();
-					}
-					System.out.println("Playlist created!");
-					printAvailableCommands();
-					choice = scan.nextLine();
-					break;
-				case '-':
-					//delete a playlist
-					System.out.println("Delete an existing playlist. Available playlists:");
-					Iterator<PlayList> itp = theHub.playlists();
-					while (itp.hasNext()) {
-						PlayList p = itp.next();
-						System.out.println(p.getTitle());
-					}
-					String plTitle = scan.nextLine();	
+			case 'p':
+				// create a new playlist from existing elements
+				System.out.println("Add an existing song or audiobook to a new playlist");
+				System.out.println("Existing playlists:");
+				Iterator<PlayList> itpl = theHub.playlists();
+				while (itpl.hasNext()) {
+					PlayList pl = itpl.next();
+					System.out.println(pl.getTitle());
+				}
+				System.out.println("Type the name of the playlist you wish to create:");
+				String playListTitle = scan.nextLine();
+				PlayList pl = new PlayList(playListTitle);
+				theHub.addPlaylist(pl);
+				System.out.println("Available elements: ");
+
+				Iterator<AudioElement> itael = theHub.elements();
+				while (itael.hasNext()) {
+					AudioElement ae = itael.next();
+					System.out.println(ae.getTitle());
+				}
+				while (choice.charAt(0) != 'n') {
+					System.out.println("Type the name of the audio element you wish to add or 'n' to exit:");
+					String elementTitle = scan.nextLine();
 					try {
-						theHub.deletePlayList(plTitle);
-					}	catch (NoPlayListFoundException ex) {
-						System.out.println (ex.getMessage());
+						theHub.addElementToPlayList(elementTitle, playListTitle);
+					} catch (NoPlayListFoundException ex) {
+						System.out.println(ex.getMessage());
+					} catch (NoElementFoundException ex) {
+						System.out.println(ex.getMessage());
 					}
-					System.out.println("Playlist deleted!");
-					printAvailableCommands();
+
+					System.out.println("Type y to add a new one, n to end");
 					choice = scan.nextLine();
+				}
+				System.out.println("Playlist created!");
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case 's':
-					//save elements, albums, playlists, favorites
-					theHub.saveElements();
-					theHub.saveAlbums();
-					theHub.savePlayLists();
-					theHub.saveFavorites();
-					System.out.println("Elements, albums, playlists and favorites saved!");
-					printAvailableCommands();
-					choice = scan.nextLine();
+			case '-':
+				// delete a playlist
+				System.out.println("Delete an existing playlist. Available playlists:");
+				Iterator<PlayList> itp = theHub.playlists();
+				while (itp.hasNext()) {
+					PlayList p = itp.next();
+					System.out.println(p.getTitle());
+				}
+				String plTitle = scan.nextLine();
+				try {
+					theHub.deletePlayList(plTitle);
+				} catch (NoPlayListFoundException ex) {
+					System.out.println(ex.getMessage());
+				}
+				System.out.println("Playlist deleted!");
+				logs.log("User deleted playlist : " + plTitle + " from MusicHub!", LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
 				break;
-				case '*':
-					System.out.println("Choose a music to play. Available songs:");
-					AudioElement theElement = null;
-					Iterator<AudioElement> itaelem = theHub.elements();
-					AudioElement ae = null ;
-					while (itaelem.hasNext()) {
-						ae = itaelem.next();
-						System.out.println(ae.getTitle());
+			case 's':
+				// save elements, albums, playlists, favorites
+				theHub.saveElements();
+				theHub.saveAlbums();
+				theHub.savePlayLists();
+				theHub.saveFavorites();
+				System.out.println("Elements, albums, playlists and favorites saved!");
+				logs.log("User saved all content into MusicHub!", LogCat.INFO);
+				printAvailableCommands();
+				choice = scan.nextLine();
+				break;
+			case '*':
+				System.out.println("Choose a music to play. Available songs:");
+				AudioElement theElement = null;
+				Iterator<AudioElement> itaelem = theHub.elements();
+				AudioElement ae = null;
+				while (itaelem.hasNext()) {
+					ae = itaelem.next();
+					System.out.println(ae.getTitle());
+				}
+				String titleElem = scan.nextLine();
+				AudioInputStream audioInputStream;
+				String filePath;
+				String ElemTitle = theHub.getUUIDFromTitle(titleElem);
+				try {
+					final String DIR = System.getProperty("user.dir");
+					filePath = DIR + "\\files\\audios\\" + ElemTitle + ".wav";
+					AudioPlayer audioPlayer = new AudioPlayer(filePath);
+
+					audioPlayer.play();
+					Scanner sc = new Scanner(System.in);
+
+					while (true) {
+						System.out.println("1. pause");
+						System.out.println("2. resume");
+						System.out.println("3. restart");
+						System.out.println("4. stop");
+						System.out.println("5. Jump to specific time");
+						int c = sc.nextInt();
+						audioPlayer.gotoChoice(c);
+						if (c == 4)
+							break;
 					}
-					String titleElem = scan.nextLine();
-					AudioInputStream audioInputStream;
-					String filePath;
-					String ElemTitle = theHub.getUUIDFromTitle(titleElem);
-					try
-			        {
-			        	final String DIR = System.getProperty("user.dir");
-			            filePath = DIR + "\\files\\audios\\"+ ElemTitle +".wav";
-			            AudioPlayer audioPlayer = 
-			                            new AudioPlayer(filePath);
-			              
-			            audioPlayer.play();
-			            Scanner sc = new Scanner(System.in);
-			              
-			            while (true)
-			            {
-			                System.out.println("1. pause");
-			                System.out.println("2. resume");
-			                System.out.println("3. restart");
-			                System.out.println("4. stop");
-			                System.out.println("5. Jump to specific time");
-			                int c = sc.nextInt();
-			                audioPlayer.gotoChoice(c);
-			                if (c == 4)
-			                break;
-			            }
-			            sc.close();
-			        } 
-			          
-			        catch (Exception ex) 
-			        {
-			            System.out.println("Error with playing sound.");
-			            ex.printStackTrace();
-			          
-			          }
+					sc.close();
+				}
+
+				catch (Exception ex) {
+					System.out.println("Error with playing sound.");
+					ex.printStackTrace();
+
+				}
 				break;
-				default:
-				
+			default:
+
 				break;
 			}
 		}
 		scan.close();
 	}
-	
+
 	private static void printAvailableCommands() {
 		System.out.println("t: display the album titles, ordered by date");
 		System.out.println("g: display songs of an album, ordered by genre");
