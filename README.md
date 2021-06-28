@@ -24,6 +24,9 @@ Ce projet s’inspire de notre projet réalisé au cours du premier semestre : j
 * Écouter les morceaux de musique
 * Ajout de favoris d’un élément audio
 
+## Lancement du projet
+Pour lancer ce projet, merci d'importer le projet sous Eclipse et de compiler en tant que Java Application.
+
 ## Membres du groupe
 * TASLI Eltan
 * GUEDIRI Wajdi
