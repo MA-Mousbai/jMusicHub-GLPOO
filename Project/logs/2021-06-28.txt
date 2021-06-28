@@ -1,0 +1,2 @@
+[10:24:35 INFO] MusicHub started
+[10:24:35 INFO] User asked for all commands
