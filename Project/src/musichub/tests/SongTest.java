@@ -14,16 +14,18 @@ public class SongTest {
 		assertEquals("Drake", ae.getArtist());
 	}
 	
+	@Test
 	public void getTitleTest() {
 		Song ae2 = new Song("Macarena","Damso",315,"macarena.wav","hiphop");
 		assertEquals("Macarena", ae2.getTitle());
 	}
 	
+	@Test
 	public void getGenreTest() {
 		Song ae3 = new Song("Les Sardines","Patrick Sebastien",322,"lessardines.wav","pop");
 		assertEquals("pop", ae3.getGenre());
 		
 	}
-	}
+}
 	
 	

@@ -13,6 +13,7 @@ public class AudioBookTest {
 	assertEquals("French", ab.getLanguage());
 	}
 	
+	@Test
 	public void getCategoryTest() {
 		AudioBook ab = new AudioBook("Dans la ville en feu","Michael Connelly", 954,"danslavilleenfeu.wav","french","novel");
 		assertEquals("novel", ab.getCategory());
